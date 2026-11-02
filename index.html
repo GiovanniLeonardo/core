@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Anatomy Workout App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0d0f14;
+      color: #f3f4f6;
+    }
+    
+    .font-display {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    /* Neumorphic & Glow Details */
+    .glow-red {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+    }
+    .glow-green {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    }
+    
+    /* Smooth progress ring transition */
+    circle {
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #11141b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col max-w-md mx-auto relative border-x border-gray-800 shadow-2xl overflow-hidden">
+
+  <!-- TOP HEADER -->
+  <header class="bg-gray-950/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-gray-800/60 sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center shadow-lg">
+        <i class="fa-solid fa-person-running text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-display font-bold text-lg leading-tight tracking-tight">KineCore</h1>
+        <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">3D ANATOMY ROUTINE</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleMute()" id="mute-btn" class="w-9 h-9 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-400 hover:text-white transition">
+        <i class="fa-solid fa-volume-high" id="mute-icon"></i>
+      </button>
+      <div class="px-2.5 py-1 rounded-lg bg-red-950/40 border border-red-900/50 text-[11px] font-bold text-red-400">
+        14 EXERCISES
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-1 overflow-y-auto px-4 py-4 pb-32 space-y-4">
+    
+    <!-- TIMED ACTIVE PLAYER -->
+    <div id="player-container" class="bg-gray-950 border border-gray-800/80 rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden transition-all duration-300">
+      <div id="player-status-bar" class="flex justify-between items-center">
+        <span class="text-xs uppercase tracking-wider font-display font-bold text-red-500" id="current-phase-label">ACTIVE EXERCISE</span>
+        <span class="text-xs text-gray-400 font-semibold" id="progress-indicator">1 / 14</span>
+      </div>
+
+      <!-- IMAGE FRAME WITH PRECISE ANATOMICAL IMAGE PREVIEW -->
+      <div class="w-full aspect-video rounded-xl bg-white relative overflow-hidden shadow-inner flex items-center justify-center">
+        <img id="active-image" class="h-full object-contain p-2" src="" alt="Active Workout Frame">
+        <!-- Overlay state indicator (REST) -->
+        <div id="rest-overlay" class="absolute inset-0 bg-gray-950/90 backdrop-blur-sm hidden flex-col items-center justify-center text-center p-4">
+          <span class="text-emerald-500 font-bold uppercase tracking-wider text-xs font-display mb-1">Take a Breath</span>
+          <h3 class="text-xl font-bold font-display text-white" id="rest-message">Up Next: Bear Plank Hold</h3>
+          <span class="text-[11px] text-gray-400 mt-2 block" id="rest-next-muscles">Targeting: Abs, Quads</span>
+        </div>
+      </div>
+
+      <!-- NAME & INFO -->
+      <div>
+        <h2 class="text-xl font-display font-bold text-white leading-tight" id="active-name">Dead Bug</h2>
+        <p class="text-xs text-gray-400 mt-1" id="active-muscles">Primary: Rectus Abdominis, Obliques</p>
+      </div>
+
+      <!-- CIRCULAR PROGRESS & CONTROLS -->
+      <div class="flex items-center justify-between mt-1 px-2">
+        <div class="flex flex-col">
+          <div class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Time Remaining</div>
+          <div class="text-4xl font-display font-bold text-white tracking-tight" id="timer-display">01:00</div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="skipBack()" class="w-10 h-10 rounded-full bg-gray-900 hover:bg-gray-800 flex items-center justify-center border border-gray-800 transition">
+            <i class="fa-solid fa-backward text-sm text-gray-300"></i>
+          </button>
+          <button onclick="toggleTimer()" id="play-btn" class="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-lg transition">
+            <i class="fa-solid fa-play text-xl ml-0.5" id="play-icon"></i>
+          </button>
+          <button onclick="skipForward()" class="w-10 h-10 rounded-full bg-gray-900 hover:bg-gray-800 flex items-center justify-center border border-gray-800 transition">
+            <i class="fa-solid fa-forward text-sm text-gray-300"></i>
+          </button>
+        </div>
+
+        <!-- SVG circular tracking indicator -->
+        <div class="relative w-16 h-16 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90">
+            <circle cx="32" cy="32" r="28" stroke="#1f2937" stroke-width="4" fill="transparent" />
+            <circle id="progress-circle" cx="32" cy="32" r="28" stroke="#ef4444" stroke-width="4" stroke-dasharray="175.9" stroke-dashoffset="0" fill="transparent" />
+          </svg>
+          <span class="absolute font-display font-bold text-xs" id="percent-label">100%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN ROUTINE SECTION -->
+    <div>
+      <h3 class="font-display font-bold text-sm tracking-wide text-gray-400 mb-3 uppercase">Anatomy Exercise Routine (14)</h3>
+      <div id="exercise-list" class="space-y-3">
+        <!-- Rendered with JS and targeted previous generation illustrations -->
+      </div>
+    </div>
+  </main>
+
+  <!-- BOTTOM UTILITY BAR -->
+  <footer class="absolute bottom-0 inset-x-0 bg-gray-950/95 backdrop-blur-lg border-t border-gray-800/80 px-6 py-4 flex justify-between items-center z-30">
+    <div class="flex items-center gap-3">
+      <div class="text-xs">
+        <span class="text-gray-400 block">Entire Workout Length</span>
+        <span class="font-display font-bold text-white text-base">18m 40s</span>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="resetWorkout()" class="px-4 py-2 bg-gray-900 border border-gray-800 text-xs font-bold text-gray-300 rounded-xl hover:bg-gray-800 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-rotate-left"></i> Restart
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    // Complete structured 14 daily exercise datasets featuring previous exact custom generation assets.
+    const workoutData = [
+      {
+        id: 1,
+        name: "Dead Bug",
+        image: "image_4.png", // Supine diagonal reach
+        muscles: "Rectus Abdominis, Obliques",
+        description: "Lie flat on your back with arms reaching straight up and knees bent at 90 degrees. Slowly lower opposite arm and leg toward the floor, maintaining lower back contact."
+      },
+      {
+        id: 2,
+        name: "Bear Plank Hold",
+        image: "image_7.png", // Horizontal bear hover 90-deg angles
+        muscles: "Transverse Abdominis, Quadriceps, Serratus Anterior",
+        description: "Support your weight on hands and feet. Ensure your knees are hovering just 1-2 inches above the ground directly under hips, back perfectly flat."
+      },
+      {
+        id: 3,
+        name: "Glute Bridge March",
+        image: "image_4.png", // Elevated hips with single knee raises
+        muscles: "Gluteus Maximus, Hamstrings, Core stabilizers",
+        description: "Engage glutes to push hips up toward the ceiling. Alternate lifting one knee up to 90 degrees at your chest without sagging your hips."
+      },
+      {
+        id: 4,
+        name: "Bird Dog",
+        image: "image_4.png", // Hand & knee alternating balance
+        muscles: "Erector Spinae, Gluteus Maximus, Core stabilizers",
+        description: "Keep hands and knees on the ground under shoulders/hips. Simultaneously stretch your left leg back and right arm forward."
+      },
+      {
+        id: 5,
+        name: "Forearm Plank",
+        image: "image_4.png", // Horizontal line on elbows
+        muscles: "Transverse Abdominis, Erectors, Gluteus",
+        description: "Support your weight on forearms and toes, forming a straight line from heels to ears while actively bracing your gut."
+      },
+      {
+        id: 6,
+        name: "Bicycle Crunches",
+        image: "image_4.png", // Supine rotation
+        muscles: "Rectus Abdominis, Internal/External Obliques",
+        description: "Lying down, hands behind head. Drive right elbow to meet left knee while extending your opposite leg, alternating with rotation."
+      },
+      {
+        id: 7,
+        name: "Flutter Kicks",
+        image: "image_4.png", // Hover kicks
+        muscles: "Lower Abs, Iliopsoas (Hip Flexors)",
+        description: "Lift head and upper shoulders off ground. Hover your straight legs and perform small, rapid vertical scissor movements."
+      },
+      {
+        id: 8,
+        name: "Heel Taps",
+        image: "image_5.png", // Supine lateral flexion reach
+        muscles: "Obliques, Transverse Abdominis",
+        description: "Lying flat with knees bent, feet on ground. Elevate shoulders slightly, and alternate reaching hands to tap side heel."
+      },
+      {
+        id: 9,
+        name: "Hand Release Push-ups",
+        image: "image_4.png", // Prone hover to high plank
+        muscles: "Pectoralis Major, Triceps Brachii, Anterior Deltoids",
+        description: "Lwer to floor, briefly lift hand palms off the ground completely, then place back down and press up with rigid posture."
+      },
+      {
+        id: 10,
+        name: "Hollow Hold",
+        image: "image_4.png", // Crescent crescent shape supine
+        muscles: "Rectus Abdominis, Hip Flexors, Quads",
+        description: "Hold a crescent hollow body position with your lower back flat on floor, shoulder blades and feet raised just above the ground."
+      },
+      {
+        id: 11,
+        name: "High Plank Shoulder Taps",
+        image: "image_8.png", // Push-up position cross-tap
+        muscles: "Shoulder Stabilizers, Rotator Cuff, Transverse Abdominis",
+        description: "Maintain a standard pushup pose. Minimize hip wobble as you alternate tapping your hand to your opposite shoulder."
+      },
+      {
+        id: 12,
+        name: "Reverse Crunches",
+        image: "image_11.png", // Supine leg-hip curl up
+        muscles: "Lower Rectus Abdominis, Obliques",
+        description: "On your back, elevate your bent legs. Curl hips up off floor toward chest without relying on arm momentum."
+      },
+      {
+        id: 13,
+        name: "Side Plank Left and Right",
+        image: "image_12.png", // Diagonal lateral hover on forearm
+        muscles: "Lateral obliques, Shoulder stabilizers, Abductors",
+        description: "Rest on forearm, stack hips and feet. Hold diagonal body line, alternating sides as you support full weight."
+      },
+      {
+        id: 14,
+        name: "Plank Hold",
+        image: "image_13.png", // High line on forearms
+        muscles: "Serratus, Rectus Abdominis, Hip Flexors",
+        description: "Sustain elbow and toe placement, bracing everything to preserve alignment from heels to head."
+      }
+    ];
+
+    // State Variables
+    let currentIdx = 0;
+    let timer = null;
+    let isWork = true; // True if exercise, False if 20s resting.
+    let timeLeft = 60; // Start at 60s
+    const activeSec = 60;
+    const restSec = 20;
+    let isPaused = true;
+    let isMuted = false;
+
+    // Web Audio Synthesizer
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freq, type, duration) {
+      if (isMuted) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.log("Audio play failed, requires user action: " + e);
+      }
+    }
+
+    // Toggle timer mute
+    function toggleMute() {
+      isMuted = !isMuted;
+      const icon = document.getElementById("mute-icon");
+      if (isMuted) {
+        icon.className = "fa-solid fa-volume-xmark text-red-400";
+      } else {
+        icon.className = "fa-solid fa-volume-high text-gray-400";
+      }
+    }
+
+    // Render list
+    const listEl = document.getElementById("exercise-list");
+    workoutData.forEach((ex, idx) => {
+      const card = document.createElement("div");
+      card.id = `card-${idx}`;
+      card.className = `flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:border-red-500/50 transition-all duration-300`;
+      card.onclick = () => selectExercise(idx);
+      
+      card.innerHTML = `
+        <div class="w-14 aspect-video rounded bg-white flex items-center justify-center p-0.5 overflow-hidden border border-gray-800">
+          <img src="${ex.image}" class="h-full object-contain" alt="${ex.name}">
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between items-start">
+            <h4 class="font-display font-semibold text-xs text-white">${idx + 1}. ${ex.name}</h4>
+            <span class="text-[9px] text-red-500 font-bold font-display uppercase tracking-wider">60s</span>
+          </div>
+          <p class="text-[10px] text-gray-500 line-clamp-1 mt-0.5">${ex.muscles}</p>
+        </div>
+        <div class="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 text-xs">
+          <i class="fa-solid fa-play"></i>
+        </div>
+      `;
+      listEl.appendChild(card);
+    });
+
+    // Select Exercise
+    function selectExercise(idx) {
+      clearInterval(timer);
+      isPaused = true;
+      currentIdx = idx;
+      isWork = true;
+      timeLeft = activeSec;
+      updateUI();
+    }
+
+    // Display updates
+    function updateUI() {
+      const ex = workoutData[currentIdx];
+      document.getElementById("active-name").innerText = ex.name;
+      document.getElementById("active-image").src = ex.image;
+      document.getElementById("active-muscles").innerText = "Primary: " + ex.muscles;
+      document.getElementById("progress-indicator").innerText = `${currentIdx + 1} / 14`;
+      
+      // Select Status style
+      const phaseLabel = document.getElementById("current-phase-label");
+      const plyContainer = document.getElementById("player-container");
+      const overlay = document.getElementById("rest-overlay");
+      
+      if (isWork) {
+        phaseLabel.innerText = "ACTIVE EXERCISE";
+        phaseLabel.className = "text-xs uppercase tracking-wider font-display font-bold text-red-500";
+        plyContainer.className = "bg-gray-950 border border-red-500/30 rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 glow-red";
+        overlay.classList.add("hidden");
+      } else {
+        phaseLabel.innerText = "GET READY (REST)";
+        phaseLabel.className = "text-xs uppercase tracking-wider font-display font-bold text-emerald-500";
+        plyContainer.className = "bg-gray-950 border border-emerald-500/30 rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden transition-all duration-300 glow-green";
+        
+        // Populate upcoming visual state helper
+        const nextEx = workoutData[(currentIdx + 1) % 14];
+        document.getElementById("rest-message").innerText = `Rest: Up Next - ${nextEx.name}`;
+        document.getElementById("rest-next-muscles").innerText = `Upcoming: ${nextEx.muscles}`;
+        overlay.classList.remove("hidden");
+      }
+
+      // Progress calculation
+      const display = document.getElementById("timer-display");
+      const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+      const s = (timeLeft % 60).toString().padStart(2, '0');
+      display.innerText = `${m}:${s}`;
+
+      const total = isWork ? activeSec : restSec;
+      const progress = (timeLeft / total) * 100;
+      const circle = document.getElementById("progress-circle");
+      
+      // SVG Circle Math: Circumference of R=28 is 175.929
+      const c = 2 * Math.PI * 28;
+      const offset = c - (progress / 100) * c;
+      circle.style.strokeDashoffset = offset;
+      circle.style.stroke = isWork ? "#ef4444" : "#10b981";
+      document.getElementById("percent-label").innerText = `${Math.ceil(progress)}%`;
+
+      // Highlight in list
+      workoutData.forEach((_, i) => {
+        const item = document.getElementById(`card-${i}`);
+        if (i === currentIdx) {
+          item.className = "flex items-center gap-3 bg-red-950/20 border border-red-800/80 p-3 rounded-xl cursor-pointer hover:border-red-500/50 transition-all duration-300";
+        } else {
+          item.className = "flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl cursor-pointer hover:border-red-500/50 transition-all duration-300";
+        }
+      });
+
+      // Show action toggle icon status
+      const pIcon = document.getElementById("play-icon");
+      const pBtn = document.getElementById("play-btn");
+      if (isPaused) {
+        pIcon.className = "fa-solid fa-play text-xl ml-0.5";
+        pBtn.className = "w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-lg transition";
+      } else {
+        pIcon.className = "fa-solid fa-pause text-xl";
+        pBtn.className = "w-14 h-14 rounded-full bg-amber-600 hover:bg-amber-500 text-white flex items-center justify-center shadow-lg transition";
+      }
+    }
+
+    // Toggle Timer execution
+    function toggleTimer() {
+      // Resume or unlock Web Audio on interaction if needed
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      
+      if (!isPaused) {
+        clearInterval(timer);
+        isPaused = true;
+      } else {
+        isPaused = false;
+        timer = setInterval(tick, 1000);
+      }
+      updateUI();
+    }
+
+    // Count down per second
+    function tick() {
+      if (timeLeft > 0) {
+        timeLeft--;
+        if (timeLeft <= 3 && timeLeft > 0) {
+          playTone(600, 'sine', 0.1); // Quick countdown beep
+        }
+      } else {
+        // Complete current timed sequence. Go to next phase or workout done.
+        playTone(900, 'triangle', 0.5); // End marker Chime
+
+        if (isWork) {
+          // Finished active exercise. Transition directly to 20s resting.
+          isWork = false;
+          timeLeft = restSec;
+        } else {
+          // Break is over. Up next 1-Minute exercise.
+          isWork = true;
+          timeLeft = activeSec;
+          currentIdx = (currentIdx + 1) % 14;
+          if (currentIdx === 0) {
+            // Reached workout list wrap, prompt finished or restart
+            clearInterval(timer);
+            isPaused = true;
+            alert("Congratulations! 14 3D Muscular Anatomy Exercises Completed!");
+          }
+        }
+      }
+      updateUI();
+    }
+
+    // Controls
+    function skipBack() {
+      isPaused = true;
+      clearInterval(timer);
+      currentIdx = (currentIdx - 1 + 14) % 14;
+      isWork = true;
+      timeLeft = activeSec;
+      updateUI();
+    }
+
+    function skipForward() {
+      isPaused = true;
+      clearInterval(timer);
+      currentIdx = (currentIdx + 1) % 14;
+      isWork = true;
+      timeLeft = activeSec;
+      updateUI();
+    }
+
+    function resetWorkout() {
+      isPaused = true;
+      clearInterval(timer);
+      currentIdx = 0;
+      isWork = true;
+      timeLeft = activeSec;
+      updateUI();
+    }
+
+    // First load execution
+    selectExercise(0);
+  </script>
+</body>
+</html>
